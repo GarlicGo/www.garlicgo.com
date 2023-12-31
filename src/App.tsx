@@ -1,5 +1,7 @@
+import { AppInitial } from './middlewares';
+
 const App = () => {
-  return <div>App</div>;
+  return <AppInitial>App</AppInitial>;
 };
 
 export default App;
