@@ -48,4 +48,3 @@ jobs:
             docker rm ${{ secrets.DOCKER_CONTAINER_NAME }}
             docker rmi $(docker images -q -f before=${{ secrets.DOCKER_IMAGE_NAME }}:latest)
             docker run -d -p 11677:80 --name ${{ secrets.DOCKER_CONTAINER_NAME }} ${{ secrets.DOCKER_IMAGE_NAME }}
-          # docker rmi $(docker images -q -f before=garlicgo/cicd-test:latest)
