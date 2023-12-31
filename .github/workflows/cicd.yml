@@ -1,0 +1,51 @@
+name: CI CD
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+          cache: npm
+      - name: Install yarn
+        run: npm install -g yarn
+      - name: Install dependencies
+        run: yarn
+      - name: Build
+        run: yarn build
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+      - name: Build and push
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKER_IMAGE_NAME }}:latest
+          file: ./docker/dockerfile
+      - name: Deploy to Remote Server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          password: ${{ secrets.REMOTE_PASSWORD }}
+          script: |
+            docker pull ${{ secrets.DOCKER_IMAGE_NAME }}:latest
+            docker stop ${{ secrets.DOCKER_CONTAINER_NAME }}
+            docker rm ${{ secrets.DOCKER_CONTAINER_NAME }}
+            docker rmi $(docker images -q -f before=${{ secrets.DOCKER_IMAGE_NAME }}:latest)
+            docker run -d -p 11677:80 --name ${{ secrets.DOCKER_CONTAINER_NAME }} ${{ secrets.DOCKER_IMAGE_NAME }}
+          # docker rmi $(docker images -q -f before=garlicgo/cicd-test:latest)

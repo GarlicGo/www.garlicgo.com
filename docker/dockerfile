@@ -1,0 +1,13 @@
+# 拉取镜像
+FROM nginx
+RUN mkdir -p /dist
+
+# 复制相关文件
+COPY ./docker/nginx.conf /etc/nginx/nginx.conf
+COPY ./dist /dist
+
+# 暴露端口
+EXPOSE 80
+
+# 启动应用
+CMD ["nginx", "-g", "daemon off;"]
